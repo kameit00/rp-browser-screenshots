@@ -1,4 +1,4 @@
-# Browserling — Cross-browser / cross-OS screenshots
+# Screenshotter — Cross-browser / cross-OS screenshots
 
 Automated screenshot capture of web pages across **3 browser engines**
 (Chromium, Firefox, WebKit) × **3 operating systems** (Ubuntu, Windows, macOS),
@@ -13,7 +13,7 @@ of PNGs per browser/OS combo.
 ## Project layout
 
 ```
-Browserling/
+Screenshotter/
 ├── playwright.config.ts        # browser projects (chromium/firefox/webkit)
 ├── urls.config.ts              # <<< EDIT: list of pages to screenshot >>>
 ├── tests/
@@ -42,7 +42,7 @@ used as-is, so you can screenshot multiple domains.
 ## 2. Run locally
 
 ```bash
-cd Browserling
+cd Screenshotter
 npm install
 npx playwright install            # downloads the 3 browser engines
 

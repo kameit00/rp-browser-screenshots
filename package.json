@@ -1,5 +1,5 @@
 {
-  "name": "browserling-screenshots",
+  "name": "screenshotter-screenshots",
   "version": "1.0.0",
   "description": "Cross-browser (Chromium/Firefox/WebKit) and cross-OS (Linux/Windows/macOS) screenshot automation using Playwright + GitHub Actions.",
   "private": true,

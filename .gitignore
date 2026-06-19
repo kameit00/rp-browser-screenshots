@@ -9,6 +9,9 @@ blob-report/
 # Captured screenshots (CI uploads them as artifacts instead)
 screenshots/
 
+# Locally-downloaded run artifacts (gh run download target)
+_artifacts/
+
 # OS noise
 .DS_Store
 Thumbs.db
