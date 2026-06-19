@@ -8,7 +8,7 @@ on:
       base_url:
         description: 'Base URL to screenshot, e.g. https://shop.example.com'
         required: true
-        default: 'https://example.com'
+        default: 'https://www.relax-pillow.de'
       mode:
         description: 'capture = just save PNGs | compare = also diff vs baselines'
         required: false
