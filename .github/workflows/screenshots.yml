@@ -1,0 +1,80 @@
+name: Cross-browser screenshots
+
+# Trigger manually (Actions tab -> "Run workflow") with a base URL, or on a
+# weekly schedule. To run on every push to main, add a `push:` trigger.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL to screenshot, e.g. https://shop.example.com'
+        required: true
+        default: 'https://example.com'
+      mode:
+        description: 'capture = just save PNGs | compare = also diff vs baselines'
+        required: false
+        default: 'capture'
+        type: choice
+        options: ['capture', 'compare']
+  schedule:
+    # Weekly Monday 03:00 UTC (uses the default base_url below). Remove if unwanted.
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+
+# Default base URL when triggered by schedule (edit to your shop):
+env:
+  DEFAULT_BASE_URL: 'https://www.relax-pillow.de'
+
+jobs:
+  screenshot:
+    name: ${{ matrix.browser }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright browser (Linux, with OS deps)
+        if: runner.os == 'Linux'
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Install Playwright browser (Windows / macOS)
+        if: runner.os != 'Linux'
+        run: npx playwright install ${{ matrix.browser }}
+
+      - name: Run screenshots
+        env:
+          BASE_URL: ${{ github.event.inputs.base_url || env.DEFAULT_BASE_URL }}
+          MODE: ${{ github.event.inputs.mode || 'capture' }}
+        run: npx playwright test --project=${{ matrix.browser }}
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.os }}-${{ matrix.browser }}
+          path: screenshots/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-${{ matrix.os }}-${{ matrix.browser }}
+          path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14

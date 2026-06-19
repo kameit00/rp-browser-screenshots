@@ -1,0 +1,16 @@
+{
+  "name": "browserling-screenshots",
+  "version": "1.0.0",
+  "description": "Cross-browser (Chromium/Firefox/WebKit) and cross-OS (Linux/Windows/macOS) screenshot automation using Playwright + GitHub Actions.",
+  "private": true,
+  "scripts": {
+    "screenshot": "playwright test",
+    "test": "playwright test",
+    "update-snapshots": "playwright test --update-snapshots",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "typescript": "^5.6.0"
+  }
+}
