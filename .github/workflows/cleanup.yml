@@ -1,0 +1,54 @@
+name: Cleanup old workflow runs
+
+# Keeps the Actions history tidy by deleting workflow run records (and their
+# attached artifacts/logs) older than a configurable age. Defaults to 90 days.
+#
+# Note: screenshot artifacts already auto-expire via retention-days in
+# screenshots.yml (30 / 14 days). This workflow handles the run *records*
+# themselves, which otherwise accumulate forever in the Actions tab.
+
+on:
+  schedule:
+    # Weekly Monday 04:17 UTC (off-the-hour to reduce load)
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Delete runs older than this many days'
+        required: false
+        default: '90'
+
+# Deleting workflow runs requires `actions: write`.
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Delete workflow runs older than cutoff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DAYS: ${{ github.event.inputs.days || '90' }}
+        run: |
+          set -euo pipefail
+          cutoff="$(date -u -d "$DAYS days ago" +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Deleting workflow runs older than $DAYS day(s) (before $cutoff) in $GITHUB_REPOSITORY..."
+
+          # List up to 500 most-recent runs across all workflows, keep only
+          # those with createdAt < cutoff, and delete each (also removes its
+          # artifacts and logs). The `|| true` guards against runs that vanish
+          # between listing and deleting.
+          count=0
+          gh run list --repo "$GITHUB_REPOSITORY" --limit 500 \
+            --json databaseId,workflowName,createdAt \
+            --jq ".[] | select(.createdAt < \"$cutoff\") | .databaseId" \
+            | while read -r id; do
+                echo "  deleting run $id"
+                gh run delete "$id" --repo "$GITHUB_REPOSITORY" || true
+              done
+
+          remaining="$(gh run list --repo "$GITHUB_REPOSITORY" --limit 500 --json databaseId | jq 'length')"
+          echo "Done. Remaining runs: $remaining"
